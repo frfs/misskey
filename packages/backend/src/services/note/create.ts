@@ -191,6 +191,17 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 		data.text = null;
 	}
 
+	// デフォルトタグを付与する
+	if (config.defaultHashtag && Users.isLocalUser(user)) {
+		if (!data.localOnly && !(data.renote && !data.text) && (data.visibility === 'public' || data.visibility === 'home' || data.visibility === 'followers')) {
+			if (!data.apHashtags) data.apHashtags = [];
+			if (!data.text) data.text = '';
+	
+			data.text += ` #${config.defaultHashtag}`;
+			data.apHashtags.push(config.defaultHashtag);
+		}
+	}
+
 	let tags = data.apHashtags;
 	let emojis = data.apEmojis;
 	let mentionedUsers = data.apMentions;

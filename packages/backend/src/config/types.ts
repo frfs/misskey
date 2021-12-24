@@ -7,6 +7,7 @@ export type Source = {
 	url: string;
 	port: number;
 	disableHsts?: boolean;
+	defaultHashtag?: string;
 	db: {
 		host: string;
 		port: number;
