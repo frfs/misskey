@@ -193,7 +193,7 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 
 	// デフォルトタグを付与する
 	if (config.defaultHashtag && Users.isLocalUser(user)) {
-		if (!data.localOnly && !(data.renote && !data.text) && (data.visibility === 'public' || data.visibility === 'home' || data.visibility === 'followers')) {
+		if (!data.localOnly && !(data.renote && !data.text) && (data.visibility === 'public' || data.visibility === 'home')) {
 			if (!data.apHashtags) data.apHashtags = [];
 			if (!data.text) data.text = '';
 	
