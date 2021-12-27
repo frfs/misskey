@@ -191,17 +191,6 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 		data.text = null;
 	}
 
-	// デフォルトタグを付与する
-	if (config.defaultHashtag && Users.isLocalUser(user)) {
-		if (!data.localOnly && !(data.renote && !data.text) && (data.visibility === 'public' || data.visibility === 'home')) {
-			if (!data.apHashtags) data.apHashtags = [];
-			if (!data.text) data.text = '';
-	
-			data.text += ` #${config.defaultHashtag}`;
-			data.apHashtags.push(config.defaultHashtag);
-		}
-	}
-
 	let tags = data.apHashtags;
 	let emojis = data.apEmojis;
 	let mentionedUsers = data.apMentions;
@@ -224,6 +213,18 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 	}
 
 	tags = tags.filter(tag => Array.from(tag || '').length <= 128).splice(0, 32);
+
+	// デフォルトタグを付与する
+	if (config.defaultHashtag && Users.isLocalUser(user)) {
+		if (!data.localOnly && !(data.renote && !data.text) && (data.visibility === 'public' || data.visibility === 'home')) {
+			if (!tags.includes(config.defaultHashtag)) {
+				if (!data.text) data.text = '';
+		
+				data.text += ` #${config.defaultHashtag}`;
+				tags.push(config.defaultHashtag);
+			}
+		}
+	}
 
 	if (data.reply && (user.id !== data.reply.userId) && !mentionedUsers.some(u => u.id === data.reply!.userId)) {
 		mentionedUsers.push(await Users.findOneByOrFail({ id: data.reply!.userId }));
