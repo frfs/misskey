@@ -5,6 +5,7 @@ import { checkWordMute } from '@/misc/check-word-mute.js';
 import { isUserRelated } from '@/misc/is-user-related.js';
 import { isInstanceMuted } from '@/misc/is-instance-muted.js';
 import { Packed } from '@/misc/schema.js';
+import config from '@/config/index.js';
 
 export default class extends Channel {
 	public readonly chName = 'hybridTimeline';
@@ -25,16 +26,30 @@ export default class extends Channel {
 	}
 
 	private async onNote(note: Packed<'Note'>) {
-		// チャンネルの投稿ではなく、自分自身の投稿 または
-		// チャンネルの投稿ではなく、その投稿のユーザーをフォローしている または
-		// チャンネルの投稿ではなく、全体公開のローカルの投稿 または
-		// フォローしているチャンネルの投稿 の場合だけ
-		if (!(
-			(note.channelId == null && this.user!.id === note.userId) ||
-			(note.channelId == null && this.following.has(note.userId)) ||
-			(note.channelId == null && (note.user.host == null && note.visibility === 'public')) ||
-			(note.channelId != null && this.followingChannels.has(note.channelId))
-		)) return;
+		if (config.replaceLTLtoTagTL && config.defaultHashtag) {
+			// チャンネルの投稿ではなく、自分自身の投稿 または
+			// チャンネルの投稿ではなく、その投稿のユーザーをフォローしている または
+			// チャンネルの投稿ではなく、指定タグの付いた投稿 または
+			// フォローしているチャンネルの投稿 の場合だけ
+			if (!(
+				(note.channelId == null && this.user!.id === note.userId) ||
+				(note.channelId == null && this.following.has(note.userId)) ||
+				(note.channelId == null && (note.tags?.includes(config.defaultHashtag) && note.visibility === 'public')) ||
+				(note.channelId != null && this.followingChannels.has(note.channelId))
+			)) return;
+		} else {
+			// チャンネルの投稿ではなく、自分自身の投稿 または
+			// チャンネルの投稿ではなく、その投稿のユーザーをフォローしている または
+			// チャンネルの投稿ではなく、全体公開のローカルの投稿 または
+			// フォローしているチャンネルの投稿 の場合だけ
+			if (!(
+				(note.channelId == null && this.user!.id === note.userId) ||
+				(note.channelId == null && this.following.has(note.userId)) ||
+				(note.channelId == null && (note.user.host == null && note.visibility === 'public')) ||
+				(note.channelId != null && this.followingChannels.has(note.channelId))
+			)) return;
+		}
+
 
 		if (['followers', 'specified'].includes(note.visibility)) {
 			note = await Notes.pack(note.id, this.user!, {

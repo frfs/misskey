@@ -8,6 +8,7 @@ export type Source = {
 	port: number;
 	disableHsts?: boolean;
 	defaultHashtag?: string;
+	replaceLTLtoTagTL?: boolean;
 	db: {
 		host: string;
 		port: number;

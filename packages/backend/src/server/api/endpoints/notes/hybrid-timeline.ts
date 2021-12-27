@@ -1,8 +1,9 @@
 import { Brackets } from 'typeorm';
+import config from '@/config/index.js';
+import define from '../../define.js';
 import { fetchMeta } from '@/misc/fetch-meta.js';
 import { Followings, Notes } from '@/models/index.js';
 import { activeUsersChart } from '@/services/chart/index.js';
-import define from '../../define.js';
 import { ApiError } from '../../error.js';
 import { makePaginationQuery } from '../../common/make-pagination-query.js';
 import { generateVisibilityQuery } from '../../common/generate-visibility-query.js';
@@ -71,8 +72,12 @@ export default define(meta, paramDef, async (ps, user) => {
 	const query = makePaginationQuery(Notes.createQueryBuilder('note'),
 		ps.sinceId, ps.untilId, ps.sinceDate, ps.untilDate)
 		.andWhere(new Brackets(qb => {
-			qb.where(`((note.userId IN (${ followingQuery.getQuery() })) OR (note.userId = :meId))`, { meId: user.id })
-				.orWhere('(note.visibility = \'public\') AND (note.userHost IS NULL)');
+			qb.where(`((note.userId IN (${ followingQuery.getQuery() })) OR (note.userId = :meId))`, { meId: user.id });
+			if (config.replaceLTLtoTagTL) {
+				qb.orWhere(`(note.visibility = \'public\') AND ('{"${config.defaultHashtag}"}' <@ note.tags)`);
+			}	else {
+				qb.orWhere('(note.visibility = \'public\') AND (note.userHost IS NULL)');
+			}			
 		}))
 		.innerJoinAndSelect('note.user', 'user')
 		.leftJoinAndSelect('user.avatar', 'avatar')
