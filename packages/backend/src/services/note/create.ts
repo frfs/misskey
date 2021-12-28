@@ -216,7 +216,7 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 
 	// デフォルトタグを付与する
 	if (config.defaultHashtag && Users.isLocalUser(user)) {
-		if (!data.localOnly && !(data.renote && !data.text) && (data.visibility === 'public' || data.visibility === 'home')) {
+		if (!data.localOnly && data.visibility === 'public' && !(data.renote && !data.text)) {
 			if (!tags.includes(config.defaultHashtag)) {
 				if (!data.text) data.text = '';
 		
