@@ -219,6 +219,9 @@ export default async (user: { id: User['id']; username: User['username']; host: 
 		if (!data.localOnly && data.visibility === 'public' && !(data.renote && !data.text)) {
 			if (!tags.includes(config.defaultHashtag)) {
 				if (!data.text) data.text = '';
+				
+				// ``` で終わるなら改行を入れる（MFMが死ぬ）
+				if (data.text.trim().endsWith('```')) data.text += '\n';
 		
 				data.text += ` #${config.defaultHashtag}`;
 				tags.push(config.defaultHashtag);
