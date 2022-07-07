@@ -4,7 +4,7 @@ import { Notes } from '@/models/index.js';
 import { checkWordMute } from '@/misc/check-word-mute.js';
 import { isUserRelated } from '@/misc/is-user-related.js';
 import { Packed } from '@/misc/schema.js';
-import config from '@/config/index';
+import config from '@/config/index.js';
 
 export default class extends Channel {
 	public readonly chName = 'localTimeline';
