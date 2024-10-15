@@ -19,6 +19,8 @@ import { UserFollowingService } from '@/core/UserFollowingService.js';
 import { MiLocalUser } from '@/models/User.js';
 import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
 import { ApiError } from '../../error.js';
+import { loadConfig } from '@/config.js';
+import { normalizeForSearch } from '@/misc/normalize-for-search.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -202,15 +204,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			},
 		});
 
+		const config = loadConfig();
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)
 			.andWhere(new Brackets(qb => {
 				if (followees.length > 0) {
 					const meOrFolloweeIds = [me.id, ...followees.map(f => f.followeeId)];
 					qb.where('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds });
 					qb.orWhere('(note.visibility = \'public\') AND (note.userHost IS NULL)');
+					if (config.replaceLTLtoTagTL && config.defaultHashtag) {
+						qb.orWhere(`'{"${normalizeForSearch(config.defaultHashtag)}"}' <@ note.tags`);
+					}
 				} else {
 					qb.where('note.userId = :meId', { meId: me.id });
 					qb.orWhere('(note.visibility = \'public\') AND (note.userHost IS NULL)');
+					if (config.replaceLTLtoTagTL && config.defaultHashtag) {
+						qb.orWhere(`'{"${normalizeForSearch(config.defaultHashtag)}"}' <@ note.tags`);
+					}
 				}
 			}))
 			.innerJoinAndSelect('note.user', 'user')
