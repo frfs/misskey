@@ -28,6 +28,8 @@ type Source = {
 	socket?: string;
 	chmodSocket?: string;
 	disableHsts?: boolean;
+	defaultHashtag?: string;
+	replaceLTLtoTagTL?: boolean;
 	db: {
 		host: string;
 		port: number;
@@ -107,6 +109,8 @@ export type Config = {
 	socket: string | undefined;
 	chmodSocket: string | undefined;
 	disableHsts: boolean | undefined;
+	defaultHashtag?: string;
+	replaceLTLtoTagTL?: boolean;
 	db: {
 		host: string;
 		port: number;
@@ -293,6 +297,8 @@ export function loadConfig(): Config {
 		perUserNotificationsMaxCount: config.perUserNotificationsMaxCount ?? 500,
 		deactivateAntennaThreshold: config.deactivateAntennaThreshold ?? (1000 * 60 * 60 * 24 * 7),
 		pidFile: config.pidFile,
+		defaultHashtag: config.defaultHashtag,
+		replaceLTLtoTagTL: config.replaceLTLtoTagTL,
 	};
 }
 

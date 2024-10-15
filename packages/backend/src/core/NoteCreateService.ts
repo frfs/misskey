@@ -368,6 +368,31 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		tags = tags.filter(tag => Array.from(tag).length <= 128).splice(0, 32);
 
+		// デフォルトタグを付与する
+		if (this.config.defaultHashtag && this.userEntityService.isLocalUser(user)) {
+			// リプライでも、チャンネル宛でもない
+			if (!data.reply && !data.channel) {
+				// ローカル限定でなく、public投稿であり、Renoteでない
+				if (!data.localOnly && data.visibility === 'public' && !(data.renote && !data.text)) {
+					// デフォタグがついてない
+					if (!tags.includes(this.config.defaultHashtag)) {
+						// タグを付与する
+
+						// 投稿内容がNullのときがある（画像添付のみの場合など）。そのときは初期化しておく
+						if (!data.text) data.text = '';
+						
+						const trimmedText = data.text.trim();
+
+						// ``` で終わるなら改行を入れる（MFMが死ぬ）
+						if (trimmedText.endsWith('```')) data.text += '\n';
+				
+						data.text += ` #${this.config.defaultHashtag}`;
+						tags.push(this.config.defaultHashtag);
+					}
+				}
+			}
+		}
+
 		if (data.reply && (user.id !== data.reply.userId) && !mentionedUsers.some(u => u.id === data.reply!.userId)) {
 			mentionedUsers.push(await this.usersRepository.findOneByOrFail({ id: data.reply!.userId }));
 		}
@@ -965,6 +990,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 					if (note.fileIds.length > 0) {
 						this.fanoutTimelineService.push('localTimelineWithFiles', note.id, 500, r);
 					}
+				}
+			}
+
+			// デフォルトハッシュタグ対応、LTLにPublicなタグ付き投稿を混ぜ込む
+			if (this.config.replaceLTLtoTagTL && note.visibility === 'public') {
+				this.redisTimelineService.push('localTimeline', note.id, 1000, r);
+				if (note.fileIds.length > 0) {
+					this.redisTimelineService.push('localTimelineWithFiles', note.id, 500, r);
 				}
 			}
 

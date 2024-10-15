@@ -12,6 +12,9 @@ import { RoleService } from '@/core/RoleService.js';
 import { isQuotePacked, isRenotePacked } from '@/misc/is-renote.js';
 import type { JsonObject } from '@/misc/json-value.js';
 import Channel, { type MiChannelService } from '../channel.js';
+import { DI } from '@/di-symbols.js';
+import { loadConfig } from '@/config.js';
+import type { Config } from '@/config.js';
 
 class LocalTimelineChannel extends Channel {
 	public readonly chName = 'localTimeline';
@@ -50,7 +53,13 @@ class LocalTimelineChannel extends Channel {
 	private async onNote(note: Packed<'Note'>) {
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
 
-		if (note.user.host !== null) return;
+		const config = loadConfig();
+		if (config.replaceLTLtoTagTL && config.defaultHashtag) {
+			if (!note.tags || !note.tags.includes(config.defaultHashtag)) return;
+		} else {
+			if (note.user.host !== null) return;
+		}
+
 		if (note.visibility !== 'public') return;
 		if (note.channelId != null) return;
 
