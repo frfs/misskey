@@ -993,9 +993,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 			// デフォルトハッシュタグ対応、LTLにPublicなタグ付き投稿を混ぜ込む
 			if (this.config.replaceLTLtoTagTL && note.visibility === 'public' && this.config.defaultHashtag && note.tags.includes(this.config.defaultHashtag)) {
-				this.funoutTimelineService.push('localTimeline', note.id, 1000, r);
+				this.fanoutTimelineService.push('localTimeline', note.id, 1000, r);
 				if (note.fileIds.length > 0) {
-					this.funoutTimelineService.push('localTimelineWithFiles', note.id, 500, r);
+					this.fanoutTimelineService.push('localTimelineWithFiles', note.id, 500, r);
 				}
 			}
 
