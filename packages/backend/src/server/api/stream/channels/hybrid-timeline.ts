@@ -14,6 +14,8 @@ import { isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
 import type { JsonObject } from '@/misc/json-value.js';
 import Channel, { type ChannelRequest } from '../channel.js';
 import { REQUEST } from '@nestjs/core';
+import { loadConfig } from '@/config.js';
+import type { Config } from '@/config.js';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class HybridTimelineChannel extends Channel {
@@ -57,24 +59,29 @@ export class HybridTimelineChannel extends Channel {
 
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
 
-		if (!note.channelId) {
-			// 以下の条件に該当するノートのみ後続処理に通す（ので、以下のif文は該当しないノートをすべて弾くようにする）
-			// - 自分自身の投稿
-			// - その投稿のユーザーをフォローしている
-			// - 全体公開のローカルの投稿
+		const config = loadConfig();
+		if (config.replaceLTLtoTagTL && config.defaultHashtag) {
+			// チャンネルの投稿ではなく、自分自身の投稿 または
+			// チャンネルの投稿ではなく、その投稿のユーザーをフォローしている または
+			// チャンネルの投稿ではなく、指定タグの付いた投稿 または
+			// フォローしているチャンネルの投稿 の場合だけ
 			if (!(
-				isMe ||
-				Object.hasOwn(this.following, note.userId) ||
-				(note.user.host == null && note.visibility === 'public')
-			)) {
-				return;
-			}
+				(note.channelId == null && isMe) ||
+				(note.channelId == null && Object.hasOwn(this.following, note.userId)) ||
+				(note.channelId == null && (note.tags?.includes(config.defaultHashtag) && note.visibility === 'public')) ||
+				(note.channelId != null && this.followingChannels.has(note.channelId))
+			)) return;
 		} else {
-			// 以下の条件に該当するノートのみ後続処理に通す（ので、以下のif文は該当しないノートをすべて弾くようにする）
-			// - フォローしているチャンネルの投稿
-			if (!this.followingChannels.has(note.channelId)) {
-				return;
-			}
+			// チャンネルの投稿ではなく、自分自身の投稿 または
+			// チャンネルの投稿ではなく、その投稿のユーザーをフォローしている または
+			// チャンネルの投稿ではなく、全体公開のローカルの投稿 または
+			// フォローしているチャンネルの投稿 の場合だけ
+			if (!(
+				(note.channelId == null && this.user!.id === note.userId) ||
+				(note.channelId == null && Object.hasOwn(this.following, note.userId)) ||
+				(note.channelId == null && (note.user.host == null && note.visibility === 'public')) ||
+				(note.channelId != null && this.followingChannels.has(note.channelId))
+			)) return;
 		}
 
 		if (!this.isNoteVisibleForMe(note)) return;

@@ -41,6 +41,8 @@ type Source = {
 	chmodSocket?: string;
 	enableIpRateLimit?: boolean;
 	disableHsts?: boolean;
+	defaultHashtag?: string;
+	replaceLTLtoTagTL?: boolean;
 	db: {
 		host: string;
 		port: number;
@@ -139,6 +141,8 @@ export type Config = {
 	chmodSocket: string | undefined;
 	enableIpRateLimit: boolean;
 	disableHsts: boolean | undefined;
+	defaultHashtag?: string;
+	replaceLTLtoTagTL?: boolean;
 	db: {
 		host: string;
 		port: number;
@@ -358,6 +362,8 @@ export function loadConfig(): Config {
 		deactivateAntennaThreshold: config.deactivateAntennaThreshold ?? (1000 * 60 * 60 * 24 * 7),
 		pidFile: config.pidFile,
 		logging: config.logging,
+		defaultHashtag: config.defaultHashtag,
+		replaceLTLtoTagTL: config.replaceLTLtoTagTL,
 	};
 }
 
