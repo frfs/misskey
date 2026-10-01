@@ -131,6 +131,7 @@ type Source = {
 			enableQueryParamLogging?: boolean,
 		}
 	}
+	misskeyBlockMentionsFromUnfamiliarRemoteUsers?: boolean;
 };
 
 export type Config = {
@@ -231,6 +232,7 @@ export type Config = {
 		replayIntegration?: Parameters<typeof SentryVue.replayIntegration>[0] | null;
 	} | undefined;
 	perChannelMaxNoteCacheCount: number;
+	misskeyBlockMentionsFromUnfamiliarRemoteUsers?: boolean;
 	perUserNotificationsMaxCount: number;
 	deactivateAntennaThreshold: number;
 	pidFile: string;
@@ -362,6 +364,7 @@ export function loadConfig(): Config {
 		deactivateAntennaThreshold: config.deactivateAntennaThreshold ?? (1000 * 60 * 60 * 24 * 7),
 		pidFile: config.pidFile,
 		logging: config.logging,
+		misskeyBlockMentionsFromUnfamiliarRemoteUsers: config.misskeyBlockMentionsFromUnfamiliarRemoteUsers ?? false,
 		defaultHashtag: config.defaultHashtag,
 		replaceLTLtoTagTL: config.replaceLTLtoTagTL,
 	};
