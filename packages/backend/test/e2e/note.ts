@@ -45,6 +45,14 @@ describe('Note', () => {
 		assert.strictEqual(res.body.createdNote.text, defaultHashtag ? `${post.text} #${defaultHashtag}` : post.text);
 	});
 
+	test.skipIf(!defaultHashtag)('MFMを含む投稿ではデフォルトハッシュタグを改行後に付与する', async () => {
+		const text = 'test **bold**';
+		const res = await api('notes/create', { text }, alice);
+
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(res.body.createdNote.text, `${text}\n #${defaultHashtag}`);
+	});
+
 	test('デフォルトハッシュタグが既に含まれている場合は重複しない', async () => {
 		const text = defaultHashtag ? `test #${defaultHashtag}` : 'test #already-tagged';
 		const res = await api('notes/create', { text }, alice);

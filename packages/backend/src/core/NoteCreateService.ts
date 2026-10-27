@@ -631,9 +631,18 @@ export class NoteCreateService implements OnApplicationShutdown {
 						// 投稿内容がNullのときがある（画像添付のみの場合など）。そのときは初期化しておく
 						if (!data.text) data.text = '';
 						const trimmedText = data.text.trim();
+						const containsMfm = mfm.parse(data.text).some(node =>
+							node.type !== 'text' &&
+							node.type !== 'hashtag' &&
+							node.type !== 'mention' &&
+							node.type !== 'url' &&
+							node.type !== 'unicodeEmoji',
+						);
 
-						// ``` で終わるなら改行を入れる（MFMが死ぬ）
-						if (trimmedText.endsWith('```')) data.text += '\n';
+						// MFMが死なないよう、ハッシュタグの前に改行を入れる
+						if (containsMfm || trimmedText.endsWith('```')) {
+							if (!data.text.endsWith('\n')) data.text += '\n';
+						}
 						data.text += ` #${this.config.defaultHashtag}`;
 						tags.push(this.config.defaultHashtag);
 					}
