@@ -12,6 +12,7 @@ import { describe, beforeAll, afterAll, test } from 'vitest';
 import { MiNote } from '@/models/Note.js';
 import { MAX_NOTE_TEXT_LENGTH } from '@/const.js';
 import { api, castAsError, initTestDb, post, role, signup, uploadFile, uploadUrl } from '../utils.js';
+import { loadConfig } from '@/config.js';
 import type * as misskey from 'misskey-js';
 
 describe('Note', () => {
@@ -21,6 +22,7 @@ describe('Note', () => {
 	let alice: misskey.entities.SignupResponse;
 	let bob: misskey.entities.SignupResponse;
 	let tom: misskey.entities.SignupResponse;
+	const defaultHashtag = loadConfig().defaultHashtag;
 
 	beforeAll(async () => {
 		const connection = await initTestDb(true);
@@ -40,7 +42,23 @@ describe('Note', () => {
 
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(typeof res.body === 'object' && !Array.isArray(res.body), true);
-		assert.strictEqual(res.body.createdNote.text, post.text);
+		assert.strictEqual(res.body.createdNote.text, defaultHashtag ? `${post.text} #${defaultHashtag}` : post.text);
+	});
+
+	test('デフォルトハッシュタグが既に含まれている場合は重複しない', async () => {
+		const text = defaultHashtag ? `test #${defaultHashtag}` : 'test #already-tagged';
+		const res = await api('notes/create', { text }, alice);
+
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(res.body.createdNote.text, text);
+	});
+
+	test('返信にはデフォルトハッシュタグを付与しない', async () => {
+		const parent = await post(alice, { text: 'parent' });
+		const res = await api('notes/create', { text: 'reply', replyId: parent.id }, alice);
+
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(res.body.createdNote.text, 'reply');
 	});
 
 	test('ファイルを添付できる', async () => {
@@ -53,6 +71,9 @@ describe('Note', () => {
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(typeof res.body === 'object' && !Array.isArray(res.body), true);
 		assert.deepStrictEqual(res.body.createdNote.fileIds, [file.id]);
+		if (defaultHashtag) {
+			assert.ok(res.body.createdNote.text?.includes(`#${defaultHashtag}`));
+		}
 	}, 1000 * 10);
 
 	test('他人のファイルで怒られる', async () => {

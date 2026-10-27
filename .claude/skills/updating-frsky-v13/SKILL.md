@@ -16,6 +16,11 @@ description: "Use whenever the user asks to update, upgrade, or rebase the frsky
 5. rebase 中にルート `package.json` の `version` が競合した場合は、選んだタグのコミットにある `package.json` の `version` の末尾へ `-frsky` を付けた値で解決する。タグ名の `v` などを版数として推測せず、必ずファイル内の値を使う。競合 hunk に version 以外の変更も含まれる場合、その部分は自動で決めず、次の競合対応に従う。
 6. その他の競合が発生したら、競合ごとに base・更新元タグ・`frsky-v13` 側の変更を調べ、影響と対応案をユーザーへ提示する。確認を得てから解決を続ける。提案や確認を待つ間、競合状態のまま停止してよい。競合内容を推測で上書きしない。
 7. rebase 完了後、ブランチ名、rebase 先のタグとコミット、ルート `package.json` の版数、変更内容、競合解決内容を確認する。JSON の妥当性と Git の状態を検査し、変更範囲に応じた近接テスト・lint を実行する。テスト不能や失敗は隠さず報告する。
+8. **毎回必須**: デフォルトハッシュタグ対応の回帰確認として、backend の `note.ts` E2E を実行する。
+   ```bash
+   pnpm --filter backend test:e2e -- test/e2e/note.ts
+   ```
+   `.config/test.yml` がない場合は `.github/misskey/test.yml` から用意する。Docker のDB/Redisを使う場合は、テスト設定の `54312` / `56312` ポートで接続でき、DB認証情報が一致することを先に確認する。共有・通常開発用DBをテスト用として流用しない。前提が満たせずテストを実行できない場合も成功扱いにせず、その理由を引き継ぎに明記する。
 
 ## 安全上の制約
 
