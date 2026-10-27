@@ -18,7 +18,7 @@ import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointServ
 import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 import { ApiError } from '../../error.js';
 import { loadConfig } from '@/config.js';
-import { normalizeForSearch } from '@/misc/normalize-for-search.js';
+import { normalizeTag } from '@/misc/normalize-tag.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -161,7 +161,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		const config = loadConfig();
 		if (config.replaceLTLtoTagTL && config.defaultHashtag) {
 			query.andWhere('(note.visibility = \'public\')');
-			query.andWhere(`'{"${normalizeForSearch(config.defaultHashtag)}"}' <@ note.tags`);
+			query.andWhere(`'{"${normalizeTag(config.defaultHashtag)}"}' <@ note.tags`);
 		} else {
 			query.andWhere('(note.visibility = \'public\') AND (note.userHost IS NULL)');
 		}

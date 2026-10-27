@@ -22,7 +22,7 @@ import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 import { ChannelFollowingService } from '@/core/ChannelFollowingService.js';
 import { ApiError } from '../../error.js';
 import { loadConfig } from '@/config.js';
-import { normalizeForSearch } from '@/misc/normalize-for-search.js';
+import { normalizeTag } from '@/misc/normalize-tag.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -215,13 +215,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					qb.where('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds });
 					qb.orWhere('(note.visibility = \'public\') AND (note.userHost IS NULL)');
 					if (config.replaceLTLtoTagTL && config.defaultHashtag) {
-						qb.orWhere(`'{"${normalizeForSearch(config.defaultHashtag)}"}' <@ note.tags`);
+						qb.orWhere(`'{"${normalizeTag(config.defaultHashtag)}"}' <@ note.tags`);
 					}
 				} else {
 					qb.where('note.userId = :meId', { meId: me.id });
 					qb.orWhere('(note.visibility = \'public\') AND (note.userHost IS NULL)');
 					if (config.replaceLTLtoTagTL && config.defaultHashtag) {
-						qb.orWhere(`'{"${normalizeForSearch(config.defaultHashtag)}"}' <@ note.tags`);
+						qb.orWhere(`'{"${normalizeTag(config.defaultHashtag)}"}' <@ note.tags`);
 					}
 				}
 			}))
