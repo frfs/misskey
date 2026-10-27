@@ -20,7 +20,11 @@ description: "Use whenever the user asks to update, upgrade, or rebase the frsky
    ```bash
    pnpm --filter backend test:e2e -- test/e2e/note.ts
    ```
-   `.config/test.yml` がない場合は `.github/misskey/test.yml` から用意する。Docker のDB/Redisを使う場合は、テスト設定の `54312` / `56312` ポートで接続でき、DB認証情報が一致することを先に確認する。共有・通常開発用DBをテスト用として流用しない。前提が満たせずテストを実行できない場合も成功扱いにせず、その理由を引き継ぎに明記する。
+   `.config/test.yml` がない場合は `.github/misskey/test.yml` から用意する。Docker のDB/Redisを使う場合は、テスト設定の `54312` / `56312` ポートで接続でき、DB認証情報が一致することを先に確認する。
+
+   テスト用の接続先が起動しておらず、Dockerサービスも停止している場合は、ユーザーの許可に基づき `compose.local-db.yml` からDB/Redisを起動してよい。テスト用ポートが必要なら、一時的な Compose override を使って `54312:5432` と `56312:6379` を追加し、テスト後に通常の `compose.local-db.yml` でサービスを起動し直してポート設定を戻す。既に稼働しているDB/Redisをポート変更のために再作成する場合は、停止・再起動の影響を確認し、別途許可を得る。
+
+   E2E はテストDBのスキーマを初期化するため、共有・通常開発用DBをテスト用として流用しない。専用の `test-misskey` DBとテスト用認証情報を確認または用意する。既存の `.config/test.yml` は上書きせず、一時的な設定変更を行った場合はテスト後に必ず元へ戻す。前提が満たせずテストを実行できない場合も成功扱いにせず、その理由を引き継ぎに明記する。
 
 ## 安全上の制約
 
